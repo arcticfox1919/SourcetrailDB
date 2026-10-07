@@ -36,6 +36,8 @@ ST_EXPORT int st_writer_record_file_language(StWriterHandle handle, const char* 
 
 /* Record a symbol; file may be null for an external reference target. */
 ST_EXPORT int st_writer_record_symbol(StWriterHandle handle, const char* stable_id, const char* qualified_name, const char* kind, int definition, const char* file, int start_line, int start_column, int end_line, int end_column);
+ST_EXPORT int st_writer_record_symbol_scope_location(StWriterHandle handle, const char* stable_id, const char* file, int start_line, int start_column, int end_line, int end_column);
+ST_EXPORT int st_writer_record_symbol_signature_location(StWriterHandle handle, const char* stable_id, const char* file, int start_line, int start_column, int end_line, int end_column);
 
 /* Record a SourcetrailDB local symbol and one of its source locations. */
 ST_EXPORT int st_writer_record_local_symbol(StWriterHandle handle, const char* stable_id, const char* name, const char* file, int start_line, int start_column, int end_line, int end_column);

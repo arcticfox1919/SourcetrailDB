@@ -85,6 +85,14 @@ sourcetrail::SymbolKind symbolKind(const char* value) {
     return sourcetrail::SymbolKind::GLOBAL_VARIABLE;
   }
   if (kind == "function") return sourcetrail::SymbolKind::FUNCTION;
+  if (kind == "enum_constant") return sourcetrail::SymbolKind::ENUM_CONSTANT;
+  if (kind == "type_parameter") {
+    return sourcetrail::SymbolKind::TYPE_PARAMETER;
+  }
+  if (kind == "builtin_type") {
+    return sourcetrail::SymbolKind::BUILTIN_TYPE;
+  }
+  if (kind == "interface") return sourcetrail::SymbolKind::INTERFACE;
   return sourcetrail::SymbolKind::TYPE;
 }
 
@@ -99,6 +107,42 @@ sourcetrail::ReferenceKind referenceKind(const char* value) {
     return sourcetrail::ReferenceKind::ANNOTATION_USAGE;
   }
   return sourcetrail::ReferenceKind::USAGE;
+}
+
+int recordSymbolRange(
+    StWriter* value,
+    const char* stable_id,
+    const char* file,
+    int start_line,
+    int start_column,
+    int end_line,
+    int end_column,
+    bool scope) {
+  if (value == nullptr || stable_id == nullptr || file == nullptr ||
+      file[0] == '\0') {
+    return 0;
+  }
+  try {
+    const auto symbol = value->symbols.find(stable_id);
+    if (symbol == value->symbols.end()) {
+      value->error = "symbol location refers to a symbol that was not recorded";
+      return 0;
+    }
+    const int file_id = fileId(value, file);
+    if (file_id == 0) return 0;
+    const sourcetrail::SourceRange range{
+        file_id, start_line, start_column, end_line, end_column};
+    const bool success = scope
+        ? value->writer.recordSymbolScopeLocation(symbol->second, range)
+        : value->writer.recordSymbolSignatureLocation(symbol->second, range);
+    if (!success) value->error = value->writer.getLastError();
+    return success ? 1 : 0;
+  } catch (const std::exception& error) {
+    setException(value, error);
+  } catch (...) {
+    setError(value, "unknown exception");
+  }
+  return 0;
 }
 
 }  // namespace
@@ -264,6 +308,32 @@ int st_writer_record_symbol(
     setError(value, "unknown exception");
   }
   return 0;
+}
+
+int st_writer_record_symbol_scope_location(
+    StWriterHandle handle,
+    const char* stable_id,
+    const char* file,
+    int start_line,
+    int start_column,
+    int end_line,
+    int end_column) {
+  return recordSymbolRange(
+      cast(handle), stable_id, file, start_line, start_column, end_line,
+      end_column, true);
+}
+
+int st_writer_record_symbol_signature_location(
+    StWriterHandle handle,
+    const char* stable_id,
+    const char* file,
+    int start_line,
+    int start_column,
+    int end_line,
+    int end_column) {
+  return recordSymbolRange(
+      cast(handle), stable_id, file, start_line, start_column, end_line,
+      end_column, false);
 }
 
 int st_writer_record_reference(
