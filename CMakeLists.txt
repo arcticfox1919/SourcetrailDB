@@ -7,6 +7,7 @@ set(BUILD_BINDINGS_PYTHON OFF CACHE BOOL "Build the SourcetrailDB Python binding
 set(BUILD_BINDINGS_JAVA OFF CACHE BOOL "Build the SourcetrailDB Java bindings.")
 set(BUILD_BINDINGS_CSHARP OFF CACHE BOOL "Build the SourcetrailDB C# bindings.")
 set(BUILD_EXAMPLES ON CACHE BOOL "Build the examples.")
+set(BUILD_BINDINGS_DART OFF CACHE BOOL "Build the C ABI bridge used by Dart FFI.")
 
 set(PROJECT_NAME "SourcetrailDB")
 
@@ -45,6 +46,13 @@ set(CORE_SOURCE_DIR "${CMAKE_SOURCE_DIR}/core") # can be accessed in subdirector
 set(CORE_BINARY_DIR "${CMAKE_BINARY_DIR}/core") # can be accessed in subdirectory CMake files
 
 add_subdirectory(${CORE_SOURCE_DIR} ${CORE_BINARY_DIR})
+
+# Optional C ABI bridge for language tooling such as the Dart indexer.  The
+# bridge lives in this repository because it is part of the native integration
+# contract, not part of the pure Dart package.
+if (BUILD_BINDINGS_DART)
+	add_subdirectory("${CMAKE_SOURCE_DIR}/bindings_dart" "${CMAKE_BINARY_DIR}/bindings_dart")
+endif()
 
 
 # --- Perl Binding ---
